@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.AbsoluteEncoder;
+import com.revrobotics.CANSparkFlex;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
@@ -20,7 +21,7 @@ import frc.robot.Constants.ModuleConstants;
 public class MAXSwerveModule {
     
     // Motors, Encoders, PID for the driving and turning motors <3
-    private final CANSparkMax m_drivingSparkMax;
+    private final CANSparkFlex m_driveSparkFlex;
     private final CANSparkMax m_turningSparkMax;
 
     private final RelativeEncoder m_drivingEncoder;
@@ -39,18 +40,18 @@ public class MAXSwerveModule {
     public MAXSwerveModule(int drivingCANID, int turningCANID, double chassisAngularOffset) {
 
         // Initializes Driving and Turning Motors
-        m_drivingSparkMax = new CANSparkMax(drivingCANID, MotorType.kBrushless);
+     m_driveSparkFlex = new CANSparkFlex(drivingCANID, MotorType.kBrushless);
         m_turningSparkMax = new CANSparkMax(turningCANID, MotorType.kBrushless);
 
         // Factory resets the driving and turning Spark MAX
         // This way, we don't get weird config issues
-        m_drivingSparkMax.restoreFactoryDefaults();
+     m_driveSparkFlex.restoreFactoryDefaults();
         m_turningSparkMax.restoreFactoryDefaults();
         
         // Set up Encoders and PIDS for drive and turn Spark MAX
-        m_drivingEncoder = m_drivingSparkMax.getEncoder();
+        m_drivingEncoder = m_driveSparkFlex.getEncoder();
         m_turningEncoder = m_turningSparkMax.getAbsoluteEncoder(Type.kDutyCycle);
-        m_drivingPIDController = m_drivingSparkMax.getPIDController();
+        m_drivingPIDController = m_driveSparkFlex.getPIDController();
         m_turningPIDController = m_turningSparkMax.getPIDController();
         m_drivingPIDController.setFeedbackDevice(m_drivingEncoder);
         m_turningPIDController.setFeedbackDevice(m_turningEncoder);
@@ -92,14 +93,14 @@ public class MAXSwerveModule {
         m_turningPIDController.setOutputRange(ModuleConstants.kTurningMinOutput, ModuleConstants.kTurningMaxOutput);
 
         // Sets the idle (brake or coast) and the max current.
-        m_drivingSparkMax.setIdleMode(ModuleConstants.kDrivingMotorIdleMode);
+     m_driveSparkFlex.setIdleMode(ModuleConstants.kDrivingMotorIdleMode);
         m_turningSparkMax.setIdleMode(ModuleConstants.kTurningMotorIdleMode);
-        m_drivingSparkMax.setSmartCurrentLimit(ModuleConstants.kDrivingMotorCurrentLimit);
-        m_drivingSparkMax.setSmartCurrentLimit(ModuleConstants.kTurningMotorCurrentLimit);
+     m_driveSparkFlex.setSmartCurrentLimit(ModuleConstants.kDrivingMotorCurrentLimit);
+     m_driveSparkFlex.setSmartCurrentLimit(ModuleConstants.kTurningMotorCurrentLimit);
 
         // Saves the SparkMAX configs, keeps settings just in
         // case your they brown out during the match
-        m_drivingSparkMax.burnFlash();
+     m_driveSparkFlex.burnFlash();
         m_turningSparkMax.burnFlash();
         
         // Takes care of angular offset and resets

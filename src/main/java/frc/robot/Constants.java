@@ -39,15 +39,15 @@ public final class Constants {
       public static final double kBackRightChassisAngularOffset = Math.PI / 2;
 
       // DRIVE CAN IDs
-      public static final int kFrontLeftDrivingCanId = 3;
-      public static final int kRearLeftDrivingCanId = 2;
-      public static final int kFrontRightDrivingCanId = 7;
-      public static final int kRearRightDrivingCanId = 6;
+      public static final int kFrontLeftDrivingCanId = 2;
+      public static final int kRearLeftDrivingCanId = 4;
+      public static final int kFrontRightDrivingCanId = 6;
+      public static final int kRearRightDrivingCanId = 8;
 
-      public static final int kFrontLeftTurningCanId = 4;
-      public static final int kRearLeftTurningCanId = 1;
-      public static final int kFrontRightTurningCanId = 8;
-      public static final int kRearRightTurningCanId = 5;
+      public static final int kFrontLeftTurningCanId = 1;
+      public static final int kRearLeftTurningCanId = 3;
+      public static final int kFrontRightTurningCanId = 5;
+      public static final int kRearRightTurningCanId = 7;
 
       public static final boolean kGyroReversed = true;
   }
@@ -117,6 +117,29 @@ public final class Constants {
 
   public static final class LEDConstants {
     public static final int blinkinPort = 0;  
+  }
+
+  public static final class VisionConstants {
+    public static final class NotesConstants {
+      public static final String TABLE_KEY = "limelight-notes";
+      public static final String NAME = "limelight-notes";
+
+      public static final double kP_AIM = 0.035;
+      public static final double kP_RANGE = 0.06;
+    }
+    
+    public static final class AprilTagConstants {
+      public static final String TABLE_KEY = "limelight-apriltags";
+      public static final String NAME = "limelight-apriltags";
+      
+      public static final double kP_AIM = 0.015;
+      public static final double kP_RANGE = 0.06;
+
+      public static final double APRILTAG_HEIGHT = 53.88; // inches
+      public static final double SPEAKER_HEIGHT = 84.63; // inches
+      public static final double LIMELIGHT_HEIGHT = 26.461; // inches
+      public static final double LIMELIGHT_ANGLE = 65; // degrees from horizontal
+    }
   }
 
   public static final class Controls {

@@ -2,11 +2,17 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.Controls;
@@ -58,18 +64,31 @@ public class RobotContainer {
 
     SmartDashboard.putData("AutoMode", m_chooser);
 
+    // Since we are using a holonomic drivetrain, the rotation component of this pose
+    // represents the goal holonomic rotation
+    Pose2d targetPose = new Pose2d(4, 3.2, Rotation2d.fromDegrees(180));
+
+    // Create the velocity and acceleration (translational and angular) constraints to use while pathfinding
+    PathConstraints constraints = new PathConstraints(
+      3.0, 4.0,
+      Units.degreesToRadians(540), Units.degreesToRadians(720));
+
+    // Since AutoBuilder is configured, we can use it to build pathfinding commands
+    Command limelightDrive = AutoBuilder.pathfindToPose(
+      targetPose,
+      constraints,
+      0.0, // Goal end velocity in meters/sec
+      0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
+    );
+
     // Named Command Configuration
     NamedCommands.registerCommand("Change LED Color", new LEDColorChangeCommand(m_LEDSubsystem));
+    // NamedCommands.registerCommand("Limelight Auto", limelightDrive);
 
     // Autos
     m_chooser.addOption("Curvy yay", m_robotDrive.getAuto("Curvy yay"));
     m_chooser.addOption("Move and Spin", m_robotDrive.getAuto("Move and Spin"));
-
-    // Load a Choreo trajectory as a PathPlannerPath
-    PathPlannerPath Test = PathPlannerPath.fromChoreoTrajectory("Test");
-
-    // Choreo Autos
-    m_chooser.addOption("Choreo Test 1", m_robotDrive.getAuto("Test"));
+    m_chooser.addOption("Limelight Drive", m_robotDrive.getAuto("Limelight Drive"));
 
   }
 

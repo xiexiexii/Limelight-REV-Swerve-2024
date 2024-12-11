@@ -10,20 +10,23 @@ import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
 
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.DriveConstants;
+import frc.robot.LimelightHelpers;
 import frc.utils.SwerveUtils;
 
 // Drive Subsystem class wahuuu
@@ -60,6 +63,8 @@ public class DriveSubsystem extends SubsystemBase {
   // Creates the Gyro for Swerve Magic
   private final AHRS m_gyro = new AHRS();
 
+  private final Field2d m_field = new Field2d();
+
   // Slew Rate Variables & Objects - Change of Voltage per microsecond
   private double m_currentRotation = 0.0;
   private double m_currentTranslationDir = 0.0;
@@ -76,19 +81,24 @@ public class DriveSubsystem extends SubsystemBase {
   public static final HolonomicPathFollowerConfig config = new HolonomicPathFollowerConfig(translationalPID, rotationalPID,
     5.7, DriveConstants.kWheelBase/Math.sqrt(2), new ReplanningConfig());
 
-  // Odometry - Tracks robot pose
-  SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
+  // Pose Estimation - Tracks robot pose
+  private SwerveDrivePoseEstimator m_poseEstimator = new SwerveDrivePoseEstimator(
     DriveConstants.kDriveKinematics, 
     Rotation2d.fromDegrees(m_gyro.getYaw()), 
     new SwerveModulePosition[] {
-    m_frontLeft.getPosition(),
-    m_frontRight.getPosition(),
-    m_backLeft.getPosition(),
-    m_backRight.getPosition()
-    });
+      m_frontLeft.getPosition(),
+      m_frontRight.getPosition(),
+      m_backLeft.getPosition(),
+      m_backRight.getPosition()
+    },
+    new Pose2d());
 
   // Creates a new DriveSubsystem
   public DriveSubsystem() {
+
+    // Do this in either robot or subsystem init
+    SmartDashboard.putData("Field", m_field);
+
     AutoBuilder.configureHolonomic(
       this::getPose,
       this::setPose, 
@@ -108,7 +118,7 @@ public class DriveSubsystem extends SubsystemBase {
   // This method will be called once per scheduler run
   // Periodically update the odometry
   public void periodic() {
-    m_odometry.update(
+    m_poseEstimator.update(
       Rotation2d.fromDegrees(-m_gyro.getYaw()), 
       new SwerveModulePosition[] {
         m_frontLeft.getPosition(),
@@ -117,23 +127,52 @@ public class DriveSubsystem extends SubsystemBase {
         m_backRight.getPosition()
       });
 
-      // Puts Yaw + Angle on Smart Dashboard
+      boolean doRejectUpdate = false;
+      LimelightHelpers.SetRobotOrientation("", m_poseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
+      LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("");
+
+      if(mt2 == null) {
+        doRejectUpdate = true;
+      }
+      if(Math.abs(m_gyro.getRate()) > 720) // if our angular velocity is greater than 720 degrees per second, ignore vision updates
+      {
+        doRejectUpdate = true;
+      }
+      if(mt2.tagCount == 0)
+      {
+        doRejectUpdate = true;
+      }
+      if(!doRejectUpdate)
+      {
+        m_poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(.7,.7,9999999));
+        m_poseEstimator.addVisionMeasurement(
+            mt2.pose,
+            mt2.timestampSeconds);
+      }
+
+      // Do this in either robot periodic or subsystem periodic
+      m_field.setRobotPose(m_poseEstimator.getEstimatedPosition());
+
+      // Puts Yaw + Angle on Smart Dashboard, as well as Limelight MT2 Field Localization
       SmartDashboard.putNumber("NavX Yaw", -m_gyro.getYaw());
       SmartDashboard.putNumber("NavX Angle", m_gyro.getAngle());
+      SmartDashboard.putNumber("Limelight Angle", m_poseEstimator.getEstimatedPosition().getRotation().getDegrees());
+      SmartDashboard.putNumber("X Position", m_poseEstimator.getEstimatedPosition().getX());
+      SmartDashboard.putNumber("Y Position", m_poseEstimator.getEstimatedPosition().getY());
   }
 
   // Returns currently estimated pose of robot
   public Pose2d getPose() {
-    return m_odometry.getPoseMeters();
+    return m_poseEstimator.getEstimatedPosition();
   }
 
   public void setPose(Pose2d pose) {
-    m_odometry.resetPosition(rawGyroRotation, getModulePositions(), pose);
+    m_poseEstimator.resetPosition(rawGyroRotation, getModulePositions(), pose);
   }
 
   // Resets odometry to specified pose
   public void resetOdometry(Pose2d pose) {
-    m_odometry.resetPosition(
+    m_poseEstimator.resetPosition(
       Rotation2d.fromDegrees(-m_gyro.getYaw()), 
       new SwerveModulePosition[] {
         m_frontLeft.getPosition(),
