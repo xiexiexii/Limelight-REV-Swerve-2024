@@ -9,6 +9,7 @@ import com.revrobotics.CANSparkBase.IdleMode;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.XboxController.Button;
 
 public final class Constants {
   public static final class DriveConstants {
@@ -39,15 +40,15 @@ public final class Constants {
       public static final double kBackRightChassisAngularOffset = Math.PI / 2;
 
       // DRIVE CAN IDs
-      public static final int kFrontLeftDrivingCanId = 2;
+      public static final int kFrontLeftDrivingCanId = 6;
       public static final int kRearLeftDrivingCanId = 4;
-      public static final int kFrontRightDrivingCanId = 6;
-      public static final int kRearRightDrivingCanId = 8;
+      public static final int kFrontRightDrivingCanId = 8;
+      public static final int kRearRightDrivingCanId = 2;
 
-      public static final int kFrontLeftTurningCanId = 1;
+      public static final int kFrontLeftTurningCanId = 5;
       public static final int kRearLeftTurningCanId = 3;
-      public static final int kFrontRightTurningCanId = 5;
-      public static final int kRearRightTurningCanId = 7;
+      public static final int kFrontRightTurningCanId = 7;
+      public static final int kRearRightTurningCanId = 1;
 
       public static final boolean kGyroReversed = true;
   }
@@ -102,9 +103,13 @@ public final class Constants {
       public static final int kTurningMotorCurrentLimit = 25; // amps
   }
 
-  public static final class OIConstants {
+  public static final class ControllerConstants {
       public static final int kDriverControllerPort = 0;
-      public static final double kDriveDeadband = 0.05;
+      public static final double kDriveDeadband = 0.10;
+
+      public final static int k_start = Button.kStart.value; // Start Button
+      public static final int k_A = Button.kA.value; // A
+        public static final int k_B = Button.kB.value; // B
   }
 
   public static final class AutoConstants {
@@ -115,50 +120,8 @@ public final class Constants {
       public static final double kFreeSpeedRpm = 5676;
   }
 
-  public static final class LEDConstants {
-    public static final int blinkinPort = 0;  
-  }
-
   public static final class VisionConstants {
-    public static final class NotesConstants {
-      public static final String TABLE_KEY = "limelight-notes";
-      public static final String NAME = "limelight-notes";
-
-      public static final double kP_AIM = 0.035;
-      public static final double kP_RANGE = 0.06;
-    }
-    
-    public static final class AprilTagConstants {
-      public static final String TABLE_KEY = "limelight-apriltags";
-      public static final String NAME = "limelight-apriltags";
-      
-      public static final double kP_AIM = 0.015;
-      public static final double kP_RANGE = 0.06;
-
-      public static final double APRILTAG_HEIGHT = 53.88; // inches
-      public static final double SPEAKER_HEIGHT = 84.63; // inches
-      public static final double LIMELIGHT_HEIGHT = 26.461; // inches
-      public static final double LIMELIGHT_ANGLE = 65; // degrees from horizontal
-    }
-  }
-
-  public static final class Controls {
-    //driver controls
-        public static final int setXValue = 1; //A
-
-        /*
-        //claw
-        public static final int clawIntakeAxis = 0; //right trigger
-        public static final int clawOuttakeAxis = 0; //left trigger
-
-        //arm positions
-        public static final int armSetToClimbButton = 0; //Y
-        public static final int armSetToGroundButton = 0; //A
-        public static final int armSetToPassButton = 0; //B
-
-        //climbing
-        public static final int climbForwardButton = 0; //R bumper
-        public static final int climbBackwardButton = 0; //L bumper
-        */
+      public static final double kP_aim = 0.035;
+      public static final double kP_range = 0.06;
   }
 }

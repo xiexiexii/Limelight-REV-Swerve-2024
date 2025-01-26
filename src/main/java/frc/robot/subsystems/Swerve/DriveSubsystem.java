@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.subsystems;
+package frc.robot.subsystems.Swerve;
 
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -26,7 +26,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.DriveConstants;
-import frc.robot.LimelightHelpers;
+import frc.robot.subsystems.Limelight.LimelightHelpers;
 import frc.utils.SwerveUtils;
 
 // Drive Subsystem class wahuuu
@@ -64,6 +64,9 @@ public class DriveSubsystem extends SubsystemBase {
   private final AHRS m_gyro = new AHRS();
 
   private final Field2d m_field = new Field2d();
+
+  // Red Alliance sees forward as 180 degrees, Blue Alliance sees as 0
+  public static int AllianceYaw;
 
   // Slew Rate Variables & Objects - Change of Voltage per microsecond
   private double m_currentRotation = 0.0;
@@ -118,6 +121,9 @@ public class DriveSubsystem extends SubsystemBase {
   // This method will be called once per scheduler run
   // Periodically update the odometry
   public void periodic() {
+
+    updateVisionOdometry();
+    /*
     m_poseEstimator.update(
       Rotation2d.fromDegrees(-m_gyro.getYaw()), 
       new SwerveModulePosition[] {
@@ -128,7 +134,8 @@ public class DriveSubsystem extends SubsystemBase {
       });
 
       boolean doRejectUpdate = false;
-      LimelightHelpers.SetRobotOrientation("", m_poseEstimator.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
+
+      LimelightHelpers.SetRobotOrientation("", -m_gyro.getYaw(), 0, 0, 0, 0, 0);
       LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("");
 
       if(mt2 == null) {
@@ -149,16 +156,56 @@ public class DriveSubsystem extends SubsystemBase {
             mt2.pose,
             mt2.timestampSeconds);
       }
+      */
 
       // Do this in either robot periodic or subsystem periodic
       m_field.setRobotPose(m_poseEstimator.getEstimatedPosition());
+  
 
       // Puts Yaw + Angle on Smart Dashboard, as well as Limelight MT2 Field Localization
       SmartDashboard.putNumber("NavX Yaw", -m_gyro.getYaw());
       SmartDashboard.putNumber("NavX Angle", m_gyro.getAngle());
-      SmartDashboard.putNumber("Limelight Angle", m_poseEstimator.getEstimatedPosition().getRotation().getDegrees());
-      SmartDashboard.putNumber("X Position", m_poseEstimator.getEstimatedPosition().getX());
-      SmartDashboard.putNumber("Y Position", m_poseEstimator.getEstimatedPosition().getY());
+      // SmartDashboard.putNumber("Limelight Angle", m_poseEstimator.getEstimatedPosition().getRotation().getDegrees());
+      SmartDashboard.putNumber("TX", LimelightHelpers.getTX("limelight-three"));
+      SmartDashboard.putNumber("TY", LimelightHelpers.getTY("limelight-three"));
+  }
+
+  // Updates Odometry with the Limelight Readings using MT2 - Old, use updateVisionMeasurements()
+  public void updateVisionOdometry() {
+
+    // Used to stop updating upon condiditions
+    boolean doRejectUpdate = false;
+
+    // Setting Yaw to Compensate for Red Alliance Limelight Localization
+    var alliance = DriverStation.getAlliance();
+    if (alliance.isPresent()){
+      if (alliance.get() == DriverStation.Alliance.Red) {
+        AllianceYaw = 180;
+      }
+      else if (alliance.get() == DriverStation.Alliance.Blue){
+        AllianceYaw = 0;
+      }
+    }
+
+    // Gets the robot's yaw for LL, then gets a field pose estimate using MT2
+    // IMPORTANT: LOOK AT THE NOTE ABOVE FOR THE ALLIANCE YAW VARIABLE!!!
+    LimelightHelpers.SetRobotOrientation("limelight-three", -m_gyro.getYaw() + AllianceYaw, 0, 0, 0, 0, 0);
+    LimelightHelpers.PoseEstimate mt2Estimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-three");
+    
+    // If angular velocity is greater than 720 deg/s, ignore vision updates
+    if (Math.abs(m_gyro.getRate()) > 720) {
+      doRejectUpdate = true;
+    }
+
+    // If there are no tags in sight, ignore vision updates
+    if (mt2Estimate == null || mt2Estimate.tagCount == 0) {
+      doRejectUpdate = true;
+    }
+
+    // If all conditions are met, update vision
+    if (!doRejectUpdate && mt2Estimate != null) {
+      m_poseEstimator.addVisionMeasurement(mt2Estimate.pose, mt2Estimate.timestampSeconds, VecBuilder.fill(.7,.7,9999999));
+    }
   }
 
   // Returns currently estimated pose of robot

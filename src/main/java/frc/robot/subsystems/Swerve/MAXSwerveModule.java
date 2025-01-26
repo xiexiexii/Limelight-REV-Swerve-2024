@@ -2,10 +2,9 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.subsystems;
+package frc.robot.subsystems.Swerve;
 
 import com.revrobotics.AbsoluteEncoder;
-import com.revrobotics.CANSparkFlex;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
@@ -21,7 +20,7 @@ import frc.robot.Constants.ModuleConstants;
 public class MAXSwerveModule {
     
     // Motors, Encoders, PID for the driving and turning motors <3
-    private final CANSparkFlex m_driveSparkFlex;
+    private final CANSparkMax m_driveSparkFlex;
     private final CANSparkMax m_turningSparkMax;
 
     private final RelativeEncoder m_drivingEncoder;
@@ -40,7 +39,7 @@ public class MAXSwerveModule {
     public MAXSwerveModule(int drivingCANID, int turningCANID, double chassisAngularOffset) {
 
         // Initializes Driving and Turning Motors
-     m_driveSparkFlex = new CANSparkFlex(drivingCANID, MotorType.kBrushless);
+     m_driveSparkFlex = new CANSparkMax(drivingCANID, MotorType.kBrushless);
         m_turningSparkMax = new CANSparkMax(turningCANID, MotorType.kBrushless);
 
         // Factory resets the driving and turning Spark MAX
