@@ -123,5 +123,7 @@ public final class Constants {
   public static final class VisionConstants {
       public static final double kP_aim = 0.035;
       public static final double kP_range = 0.06;
+
+      public static final double k_aimThreshold = 0.5;
   }
 }

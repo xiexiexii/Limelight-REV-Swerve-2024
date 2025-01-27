@@ -1,5 +1,6 @@
 package frc.robot.commands;
 
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.VisionConstants;
@@ -11,6 +12,9 @@ public class AimCommand extends Command {
     
   // Instantiate Stuff
   DriveSubsystem m_driveSubsystem;
+
+  // Timer for cancellation with failed robot adjustment
+  Timer timer = new Timer();
     
   // All the Valid IDs available for positioning
   int[] validIDs = {6, 7, 8, 9, 10, 11};
@@ -33,6 +37,10 @@ public class AimCommand extends Command {
 
     // Checks for TIV
     tiv = LimelightHelpers.getTV("limelight-three");
+
+    // Timer Reset
+    timer.start();
+    timer.reset();
   }
     
   // The actual control! TODO: Add real PID
@@ -48,9 +56,11 @@ public class AimCommand extends Command {
   // Add stuff we do after to reset here (a.k.a tag filters)
   public void end(boolean interrupted) {}
 
-  // Are we done yet? Finishes when threshold is reached or if no tag in view TODO: Add a timer condition too
+  // Are we done yet? Finishes when threshold is reached or if no tag in view or if timer is reached TODO: Add a timer condition too
   public boolean isFinished() {
-    return (LimelightHelpers.getTX("limelight-three") < 0.5 && LimelightHelpers.getTX("limelight-three") > -0.5) || !tiv;
+    return (LimelightHelpers.getTX("limelight-three") < VisionConstants.k_aimThreshold 
+      && LimelightHelpers.getTX("limelight-three") > -VisionConstants.k_aimThreshold) 
+      || !tiv || timer.get() > 3;
   }
 
   // Method that returns a double for how fast the robot needs to turn, farther angle from the tag is a faster turn
