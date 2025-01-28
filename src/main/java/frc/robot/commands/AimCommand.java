@@ -1,5 +1,6 @@
 package frc.robot.commands;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.DriveConstants;
@@ -15,6 +16,8 @@ public class AimCommand extends Command {
 
   // Timer for cancellation with failed robot adjustment
   Timer timer = new Timer();
+
+  PIDController m_aimController = new PIDController(VisionConstants.kP_aim, VisionConstants.kI_aim, VisionConstants.kD_aim);
     
   // All the Valid IDs available for positioning
   int[] validIDs = {6, 7, 8, 9, 10, 11};
@@ -65,13 +68,15 @@ public class AimCommand extends Command {
 
   // Method that returns a double for how fast the robot needs to turn, farther angle from the tag is a faster turn
   private double limelight_aim_proportional() {
+    m_aimController.enableContinuousInput(-40, 40);
     
     // Proportional multiplier on the X-Offset value
-    double targetingAngularVelocity = LimelightHelpers.getTX("limelight-three") * VisionConstants.kP_aim;
+    //double targetingAngularVelocity = LimelightHelpers.getTX("limelight-three") * VisionConstants.kP_aim;
+    double targetingAngularVelocity = m_aimController.calculate((LimelightHelpers.getTX("limelight-three")));
 
     // Multiply by -1 because robot is CCW Positive. Multiply by a reduction 
     // multiplier to reduce speed. Scale TX up with robot speed.
-    targetingAngularVelocity *= -0.1 * DriveConstants.kMaxAngularSpeed;
+    targetingAngularVelocity *= 0.1 * DriveConstants.kMaxAngularSpeed;
 
     // Hooray
     return targetingAngularVelocity;
