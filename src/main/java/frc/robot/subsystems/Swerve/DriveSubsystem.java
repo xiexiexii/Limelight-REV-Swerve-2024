@@ -19,6 +19,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -64,6 +65,9 @@ public class DriveSubsystem extends SubsystemBase {
   private final AHRS m_gyro = new AHRS();
 
   private final Field2d m_field = new Field2d();
+
+  //
+  private double[] botPoseTargetSpace = new double[6];
 
   // Red Alliance sees forward as 180 degrees, Blue Alliance sees as 0
   public static int AllianceYaw;
@@ -160,7 +164,8 @@ public class DriveSubsystem extends SubsystemBase {
 
       // Do this in either robot periodic or subsystem periodic
       m_field.setRobotPose(m_poseEstimator.getEstimatedPosition());
-  
+      
+      botPoseTargetSpace = NetworkTableInstance.getDefault().getTable("limelight-three").getEntry("botpose_targetspace").getDoubleArray(new double[6]);
 
       // Puts Yaw + Angle on Smart Dashboard, as well as Limelight MT2 Field Localization
       SmartDashboard.putNumber("NavX Yaw", -m_gyro.getYaw());
@@ -168,6 +173,11 @@ public class DriveSubsystem extends SubsystemBase {
       // SmartDashboard.putNumber("Limelight Angle", m_poseEstimator.getEstimatedPosition().getRotation().getDegrees());
       SmartDashboard.putNumber("TX", LimelightHelpers.getTX("limelight-three"));
       SmartDashboard.putNumber("TY", LimelightHelpers.getTY("limelight-three"));
+
+      SmartDashboard.putNumber("Dist X", botPoseTargetSpace[0]);
+      SmartDashboard.putNumber("Dist Y", botPoseTargetSpace[1]);
+      SmartDashboard.putNumber("Dist Z", botPoseTargetSpace[2]);
+      SmartDashboard.putNumber("Angle Yaw", botPoseTargetSpace[4]);
   }
 
   // Updates Odometry with the Limelight Readings using MT2 - Old, use updateVisionMeasurements()

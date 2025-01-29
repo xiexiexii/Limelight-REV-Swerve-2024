@@ -8,8 +8,8 @@ import frc.robot.Constants.VisionConstants;
 import frc.robot.subsystems.Limelight.LimelightHelpers;
 import frc.robot.subsystems.Swerve.DriveSubsystem;
 
-// Aims Robot at the Nearest Valid Target
-public class AimCommand extends Command {
+// Drives Robot to a set distance from the Nearest Valid Target
+public class RangeCommand extends Command {
     
   // Instantiate Stuff
   DriveSubsystem m_driveSubsystem;
@@ -17,8 +17,8 @@ public class AimCommand extends Command {
   // Timer for cancellation with failed robot adjustment
   Timer timer = new Timer();
 
-  // PID Stuff!
-  PIDController m_aimController = new PIDController(VisionConstants.kP_aim, VisionConstants.kI_aim, VisionConstants.kD_aim);
+  // PID Controller Hooray
+  PIDController m_rangeController = new PIDController(VisionConstants.kP_range, VisionConstants.kI_range, VisionConstants.kD_range);
     
   // All the Valid IDs available for positioning
   int[] validIDs = {6, 7, 8, 9, 10, 11};
@@ -27,7 +27,7 @@ public class AimCommand extends Command {
   boolean tiv;
 
   // Constructor
-  public AimCommand(DriveSubsystem driveSubsystem) {
+  public RangeCommand(DriveSubsystem driveSubsystem) {
         
     // Definitions and setting parameters are equal to members!
     m_driveSubsystem = driveSubsystem;
@@ -51,8 +51,8 @@ public class AimCommand extends Command {
   // The actual control!
   public void execute() {
 
-    // If tags are in view, rotate at a speed proportional to the offset robot relative!
-    if (tiv) m_driveSubsystem.drive(0, 0, limelight_aim_proportional(), false, true);
+    // If tags are in view, drive forward at a speed proportional to the offset robot relative!
+    if (tiv) m_driveSubsystem.drive(limelight_range_proportional(), 0, 0, false, true);
 
     // Otherwise we tell it to quit
     else tiv = false;
@@ -63,23 +63,24 @@ public class AimCommand extends Command {
 
   // Are we done yet? Finishes when threshold is reached or if no tag in view or if timer is reached
   public boolean isFinished() {
-    return (LimelightHelpers.getTX(VisionConstants.k_limelightName) < VisionConstants.k_aimThreshold 
-      && LimelightHelpers.getTX(VisionConstants.k_limelightName) > -VisionConstants.k_aimThreshold) 
-      || !tiv || timer.get() > 2;
+    return (LimelightHelpers.getTY(VisionConstants.k_limelightName) < VisionConstants.k_rangeThresholdMax 
+      && LimelightHelpers.getTY(VisionConstants.k_limelightName) > VisionConstants.k_rangeThresholdMin) 
+      || !tiv || timer.get() > 3;
   }
 
-  // Method that returns a double for how fast the robot needs to turn, farther angle from the tag is a faster turn
-  private double limelight_aim_proportional() {
-    m_aimController.enableContinuousInput(-40, 40);
+  // Simple ranging control with Limelight's TY value
+  // Works best if your Limelight's mount height and target mount height are different.
+  // Use TA (area) for target ranging rather than TY if LL and target are on the same level
+  private double limelight_range_proportional() {
+    m_rangeController.enableContinuousInput(-30, 30);
     
-    // Proportional multiplier on the X-Offset value
-    double targetingAngularVelocity = m_aimController.calculate((LimelightHelpers.getTX(VisionConstants.k_limelightName)));
+    // Calculates based on difference in distance from tag to robot
+    double targetingForwardSpeed = m_rangeController.calculate(LimelightHelpers.getTY(VisionConstants.k_limelightName) - VisionConstants.k_rangeTarget);
 
-    // Multiply by -1 because robot is CCW Positive. Multiply by a reduction 
-    // multiplier to reduce speed. Scale TX up with robot speed.
-    targetingAngularVelocity *= 0.1 * DriveConstants.kMaxAngularSpeed;
+    // Scale up to robot speed and 30% speed reduction
+    targetingForwardSpeed *= 0.7 * DriveConstants.kMaxSpeedMetersPerSecond;
 
-    // Hooray
-    return targetingAngularVelocity;
+    // Enjoy
+    return targetingForwardSpeed;
   }
 }

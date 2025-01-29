@@ -6,6 +6,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.ControllerConstants;
 import frc.robot.commands.AimCommand;
+import frc.robot.commands.AimNRangeReefRightCommand;
+import frc.robot.commands.RangeCommand;
 import frc.robot.subsystems.Swerve.DriveSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -83,6 +85,18 @@ public class RobotContainer {
     new JoystickButton(m_driverController.getHID(), ControllerConstants.k_B)
     .onTrue(
       new AimCommand(m_robotDrive)
+    );
+
+    // Range - X Button
+    new JoystickButton(m_driverController.getHID(), ControllerConstants.k_X)
+    .onTrue(
+      new RangeCommand(m_robotDrive)
+    );
+
+    // AimNRange - Y Button
+    new JoystickButton(m_driverController.getHID(), ControllerConstants.k_Y)
+    .onTrue(
+      new AimNRangeReefRightCommand(m_robotDrive)
     );
   }
 
