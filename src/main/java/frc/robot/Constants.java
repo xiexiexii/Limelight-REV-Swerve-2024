@@ -134,25 +134,9 @@ public final class Constants {
     public static final double kI_range = 0.0;
     public static final double kD_range = 0.0;
 
-    public static final double kP_strafe = 0.03;
-    public static final double kI_strafe = 0.0;
-    public static final double kD_strafe = 0.0;
-
     public static final double k_aimThreshold = 0.5;
     public static final double k_rangeThresholdMax = -3.8;
     public static final double k_rangeThresholdMin = -4.2;
     public static final double k_rangeTarget = -4;
-
-    public static final double k_aimReefRightThresholdMax = 0.5;
-    public static final double k_aimReefRightThresholdMin = -0.5;
-    public static final double k_aimReefRightTarget = 0;
-
-    public static final double k_rangeReefRightThresholdMax = -0.63;
-    public static final double k_rangeReefRightThresholdMin = -0.68;
-    public static final double k_rangeReefRightTarget = -0.65;
-
-    public static final double k_strafeReefRightThresholdMax = 0.20;
-    public static final double k_strafeReefRightThresholdMin = 0.15;
-    public static final double k_strafeReefRightTarget = 0.18;
   }
 }
